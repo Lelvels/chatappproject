@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -23,10 +24,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
 import java.util.HashMap;
+import java.util.Locale;
 
 public class RegisterActivity extends AppCompatActivity {
     MaterialEditText username, email, password;
     Button registerBtn;
+    TextView already_have_account;
 
     FirebaseAuth auth;
     DatabaseReference reference;
@@ -47,8 +50,15 @@ public class RegisterActivity extends AppCompatActivity {
         email = findViewById(R.id.ar_email);
         password = findViewById(R.id.ar_password);
         registerBtn = findViewById(R.id.ar_registerButton);
-
+        already_have_account = findViewById(R.id.already_have_an_account);
         auth = FirebaseAuth.getInstance();
+
+        already_have_account.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+            }
+        });
 
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,6 +94,7 @@ public class RegisterActivity extends AppCompatActivity {
                             hashMap.put("id", userid);
                             hashMap.put("username", username);
                             hashMap.put("imageURL", "default");
+                            hashMap.put("search", username.toLowerCase());
 
                             reference.setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override

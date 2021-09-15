@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 
 import com.example.chatappv1.Adapter.UserAdapter;
 import com.example.chatappv1.Model.Chat;
+import com.example.chatappv1.Model.Chatlist;
 import com.example.chatappv1.Model.User;
 import com.example.chatappv1.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -34,7 +35,7 @@ public class ChatsFragment extends Fragment {
     FirebaseUser fuser;
     DatabaseReference reference;
 
-    private List<String> usersList;
+    private List<Chatlist> usersList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -48,22 +49,18 @@ public class ChatsFragment extends Fragment {
         fuser = FirebaseAuth.getInstance().getCurrentUser();
 
         usersList = new ArrayList<>();
-        reference = FirebaseDatabase.getInstance("https://chatappbycong-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference("Chats");
+
+        reference = FirebaseDatabase.getInstance("https://chatappbycong-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference("Chatlist").child(fuser.getUid());
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 usersList.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()){
-                    Chat chat = snapshot.getValue(Chat.class);
-                    if(chat.getSender().equals(fuser.getUid())){
-                        usersList.add(chat.getReceiver());
-                    }
-                    if(chat.getReceiver().equals(fuser.getUid())){
-                        usersList.add(chat.getSender());
-                    }
+                    Chatlist chatlist = snapshot.getValue(Chatlist.class);
+                    usersList.add(chatlist);
                 }
 
-                readChats();
+                chatList();
             }
 
             @Override
@@ -71,38 +68,26 @@ public class ChatsFragment extends Fragment {
 
             }
         });
+
         return view;
     }
 
-    private void readChats() {
+    private void chatList() {
         mUsers = new ArrayList<>();
         reference = FirebaseDatabase.getInstance("https://chatappbycong-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference("Users");
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 mUsers.clear();
-
                 for(DataSnapshot snapshot : dataSnapshot.getChildren()){
                     User user = snapshot.getValue(User.class);
-                    for(String id : usersList){
-                        if(user.getId().equals(id)){
-                            //Giai thich doan nay: lấy về user trùng với danh sách đã lọc, nếu danh sách trống thì thêm vào luôn,
-                            // việc có thêm một vòng lặp này nữa để kiểm tra xem cái user lấy xuống có trùng lặp với cái user nào có sẵn trong list không ?
-                            if(mUsers.size() != 0){
-                                for(int i = 0; i < mUsers.size(); i++){
-                                    User user1 = mUsers.get(i);
-                                    if(!user.getId().equals(user1.getId()) && !mUsers.contains(user)){
-                                        mUsers.add(user);
-                                    }
-                                }
-                            } else {
-                                mUsers.add(user);
-                            }
+                    for(Chatlist chatlist : usersList){
+                        if(user.getId().equals(chatlist.getId())){
+                            mUsers.add(user);
                         }
                     }
                 }
-
-                UserAdapter userAdapter = new UserAdapter(getContext(), mUsers, true);
+                userAdapter = new UserAdapter(getContext(), mUsers, true);
                 recyclerView.setAdapter(userAdapter);
             }
 
@@ -111,6 +96,5 @@ public class ChatsFragment extends Fragment {
 
             }
         });
-
     }
 }

@@ -7,6 +7,7 @@ import com.bumptech.glide.Glide;
 import com.example.chatappv1.Fragments.ChatsFragment;
 import com.example.chatappv1.Fragments.ProfileFragment;
 import com.example.chatappv1.Fragments.UsersFragment;
+import com.example.chatappv1.Model.Chat;
 import com.example.chatappv1.Model.User;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -74,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                 if(user.getImageURL().equals("default")){
                     profile_image.setImageResource(R.mipmap.ic_launcher);
                 } else {
-                    Glide.with(MainActivity.this).load(user.getImageURL()).into(profile_image);
+                    Glide.with(getApplicationContext()).load(user.getImageURL()).into(profile_image);
                 }
             }
             @Override
@@ -84,6 +85,9 @@ public class MainActivity extends AppCompatActivity {
 
         TabLayout tabLayout = findViewById(R.id.am_tab_layout);
         ViewPager2 viewPager2 = findViewById(R.id.am_view_pager);
+
+        reference = FirebaseDatabase.getInstance("https://chatappbycong-default-rtdb.asia-southeast1.firebasedatabase.app/").
+                getReference("Chats");
         ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(this);
 
         viewPagerAdapter.addFragment(new ChatsFragment(), "Chats");
@@ -93,13 +97,13 @@ public class MainActivity extends AppCompatActivity {
         viewPager2.setAdapter(viewPagerAdapter);
 
         new TabLayoutMediator(tabLayout, viewPager2,
-                new TabLayoutMediator.TabConfigurationStrategy() {
-                    @Override
-                    public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
-                        List<String> titles = viewPagerAdapter.getTitles();
-                        tab.setText(titles.get(position));
-                    }
-                }).attach();
+                        new TabLayoutMediator.TabConfigurationStrategy() {
+                            @Override
+                            public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
+                                List<String> titles = viewPagerAdapter.getTitles();
+                                tab.setText(titles.get(position));
+                            }
+                        }).attach();
     }
 
     @Override
@@ -148,6 +152,11 @@ public class MainActivity extends AppCompatActivity {
 
         public ArrayList<String> getTitles() {
             return titles;
+        }
+
+        public void clear(){
+            fragments.clear();
+            titles.clear();
         }
     }
 
